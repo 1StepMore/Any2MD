@@ -7,6 +7,7 @@ from typing import List
 
 from wheels.dispatcher import Dispatcher
 from wheels.cleaner import Cleaner
+from wheels.logger import logger
 
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 _log_lock = asyncio.Lock()
@@ -73,9 +74,13 @@ def _get_unique_output_path(path: Path) -> Path:
 
 async def _async_log(file_path: Path, status: str) -> None:
     """Thread-safe logging via shared lock."""
-    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
     async with _log_lock:
-        print(f"[{timestamp}] [{file_path}] status: {status}")
+        if "completed" in status:
+            logger.info(f"[{file_path}] {status}")
+        elif "failed" in status:
+            logger.error(f"[{file_path}] {status}")
+        else:
+            logger.info(f"[{file_path}] {status}")
 
 
 async def _async_convert_single(

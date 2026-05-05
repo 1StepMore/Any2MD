@@ -8,6 +8,7 @@ import typer
 
 from pipeline import convert_file, async_convert_batch
 from wheels.config import get_config
+from wheels.logger import logger, setup_logger
 
 app = typer.Typer()
 
@@ -25,7 +26,7 @@ def main(
     """Convert a file to markdown.
 
     Args:
-        input_file: Path to the file or directory to convert.
+        input_file: Path to the file or folder to convert.
         output_dir: Output directory (default: same as input).
         mode: Conversion mode - 'fast' (default) or 'quality'.
         pdf_engine: PDF engine - 'light' (default) or 'heavy'.
@@ -33,7 +34,13 @@ def main(
         config: Path to config file.
         verbose: Enable verbose logging.
     """
+    # Setup logger with verbose flag
+    setup_logger(verbose)
+
+    logger.info(f"Starting conversion: mode={mode}, pdf_engine={pdf_engine}")
+
     if mode not in ("quality", "fast"):
+        logger.error(f"Invalid mode: {mode}")
         raise typer.BadParameter("Mode must be 'quality' or 'fast'", param_name="mode")
 
     # Directory handling
@@ -46,36 +53,46 @@ def main(
                     files.append(f)
 
         if not files:
+            logger.warning(f"No supported files found in: {input_file}")
             typer.echo(f"No supported files found in: {input_file}")
             return
 
         concurrency_limit = concurrency if concurrency is not None else get_config().concurrency
 
+        logger.info(f"Batch mode: {len(files)} files, concurrency={concurrency_limit}, mode={mode}")
         typer.echo(f"Found {len(files)} files, converting with concurrency={concurrency_limit}...")
         results = asyncio.run(async_convert_batch(files, mode, concurrency_limit))
         success_count = sum(1 for r in results if r is not None)
         fail_count = sum(1 for r in results if r is None)
+        logger.info(f"Batch completed: {success_count} succeeded, {fail_count} failed")
         typer.echo(f"\nCompleted: {success_count} succeeded, {fail_count} failed")
         return
 
     # Single file handling
+    logger.info(f"Converting: {input_file} (mode={mode})")
     try:
         output_path = convert_file(input_file, mode=mode)
+        logger.info(f"Success: {input_file} -> {output_path}")
         typer.echo(f"Converted: {output_path}")
     except FileNotFoundError:
+        logger.error(f"File not found: {input_file}")
         typer.echo(f"Error: File not found: {input_file}", err=True)
         raise typer.Exit(code=1)
     except ValueError as e:
         msg = str(e)
         if "50MB" in msg:
+            logger.warning(f"File too large: {input_file}")
             typer.echo("Error: File exceeds 50MB limit", err=True)
         else:
+            logger.error(f"Unsupported format: {input_file.suffix}")
             typer.echo(f"Error: Unsupported format: {input_file.suffix}", err=True)
         raise typer.Exit(code=1)
     except RuntimeError as e:
+        logger.error(f"Conversion failed: {input_file}: {e}")
         typer.echo(f"Error: Conversion failed: {e}", err=True)
         raise typer.Exit(code=1)
     except Exception as e:
+        logger.exception(f"Unexpected error: {input_file}: {e}")
         typer.echo(f"Error: {e}", err=True)
         raise typer.Exit(code=1)
 
