@@ -1,0 +1,182 @@
+# Any2MD - 格式工厂分发引擎
+
+> Universal document to Markdown converter with quality/fast dual-mode pipeline
+
+[![Python 3.10+](https://img.shields.io/badge/python-3.10+-blue.svg)](https://python.org)
+[![License: MIT](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
+
+**Any2MD** converts documents to Markdown with two processing modes:
+- **Quality Mode**: Uses specialized converters (pypandoc, mammoth, markdownify) for superior output
+- **Fast Mode**: Uses markitdown for quick "good enough" results
+
+## Features
+
+- **Dual-Mode Pipeline**: Quality vs Fast mode for optimal results
+- **PDF Heavy Channel**: Dynamic import for optional marker/docling engines
+- **Async Batch Processing**: Concurrent file conversion with Semaphore control
+- **Smart Retry**: Tenacity-based retry for transient failures
+- **Non-Destructive Output**: Auto-incremented filenames, never overwrites
+- **BAT Drag-and-Drop**: Zero-config usage on Windows
+
+## Quick Start
+
+### Installation
+
+```bash
+# Clone the repository
+git clone https://github.com/1StepMore/Any2MD.git
+cd Any2MD
+
+# Create virtual environment (recommended)
+python -m venv venv
+source venv/bin/activate  # Linux/macOS
+# or: venv\Scripts\activate  # Windows
+
+# Install dependencies
+pip install -r requirements.txt
+```
+
+### Usage
+
+**Drag-and-Drop (Windows)**
+```
+1. Drag a file onto bat\run.bat
+2. Done! Markdown appears next to original
+```
+
+**Command Line**
+
+```bash
+# Single file conversion
+python cli.py -i document.pdf
+
+# With quality mode (better output)
+python cli.py -i document.docx --mode quality
+
+# Batch folder processing
+python cli.py -i ./documents --concurrency 4
+
+# Verbose logging
+python cli.py -i document.pdf --verbose
+
+# Full options
+python cli.py --help
+```
+
+## CLI Options
+
+| Option | Short | Description | Default |
+|--------|-------|-------------|---------|
+| `--input` | `-i` | Input file or folder | **Required** |
+| `--output` | `-o` | Output directory | Same as input |
+| `--mode` | - | `quality` or `fast` | `fast` |
+| `--pdf-engine` | - | `light` (markitdown) or `heavy` (marker/docling) | `light` |
+| `--concurrency` | - | Max parallel conversions | From config |
+| `--config` | - | Config file path | `config.yaml` |
+| `--verbose` | `-v` | Enable debug logging | `false` |
+
+## Configuration
+
+Edit `config.yaml`:
+
+```yaml
+# Output mode: quality (best) or fast (quick)
+output_mode: fast
+
+# PDF engine: light (markitdown) or heavy (marker -> docling)
+pdf_engine: light
+
+# Max file size (MB) - files larger are skipped
+max_file_size: 50
+
+# Async concurrency level
+concurrency: 4
+
+# Retry attempts for transient failures
+retry_count: 3
+```
+
+## Architecture
+
+```
+Any2MD/
+├── bat/
+│   └── run.bat              # Windows drag-and-drop entry
+├── wheels/
+│   ├── converters/         # Format-specific converters
+│   │   ├── converter_pandoc.py   # Quality: docx/pptx/xlsx
+│   │   ├── converter_mammoth.py   # Quality: complex DOCX
+│   │   ├── converter_html.py      # Quality: HTML
+│   │   ├── converter_pdf.py       # Dynamic: PDF (light/heavy)
+│   │   └── converter_passthrough.py # .md/.txt passthrough
+│   ├── dispatcher.py        # Format routing
+│   ├── fast_lane.py        # markitdown wrapper
+│   ├── cleaner.py           # Text post-processing
+│   └── logger.py           # Logging configuration
+├── cli.py                  # Typer CLI entry
+├── pipeline.py              # Async batch orchestration
+├── config.yaml             # Configuration
+└── requirements.txt        # Dependencies
+```
+
+## Supported Formats
+
+| Format | Quality Mode | Fast Mode |
+|--------|-------------|-----------|
+| .docx | pypandoc → mammoth fallback | markitdown |
+| .pptx / .xlsx | pypandoc | markitdown |
+| .html / .htm | markdownify | markitdown |
+| .pdf | marker/docling (heavy) or markitdown (light) | markitdown |
+| .md / .txt | passthrough | passthrough |
+
+## PDF Engine
+
+**Light Mode** (default): Uses markitdown with zero external dependencies.
+
+**Heavy Mode**: Attempts marker first, falls back to docling if unavailable.
+
+Install heavy dependencies:
+```bash
+# Ubuntu/Debian
+sudo apt install tesseract-ocr poppler-utils
+
+# Windows (requires admin)
+winget install --id UB-Mannheim.TesseractOCR -e
+winget install --id oschwartz10612.Poppler -e
+```
+
+## Error Handling
+
+- **File too large**: Files >50MB are skipped with error log
+- **Unsupported format**: Clear error message with supported formats
+- **Missing dependencies**: Install instructions in error message
+- **Transient failures**: Automatic retry (up to 3 attempts)
+- **Batch continuation**: Single file failure doesn't stop batch processing
+
+## Development
+
+```bash
+# Run CLI help
+python cli.py --help
+
+# Test with sample files
+python cli.py -i sample.docx --mode quality
+
+# Check environment
+python check_env.py
+```
+
+## License
+
+MIT License - see LICENSE file for details
+
+## Credits
+
+Built with these excellent open-source libraries:
+- [pypandoc](https://github.com/JessicaTegner/pypandoc) - Pandoc wrapper
+- [mammoth](https://github.com/mwilliamson/python-mammoth) - DOCX to Markdown
+- [markdownify](https://github.com/matthewwithanm/markdownify) - HTML to Markdown
+- [markitdown](https://github.com/microsoft/markitdown) - Microsoft format converter
+- [docling](https://github.com/DS4SD/docling) - PDF conversion
+- [tenacity](https://github.com/jd/tenacity) - Retry logic
+- [Typer](https://github.com/tiangolo/typer) - CLI framework

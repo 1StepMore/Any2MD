@@ -65,14 +65,19 @@ class PdfConverter(BaseConverter):
 
     def _convert_light(self, input_path: Path) -> str:
         """Convert using markitdown subprocess (FastLane pattern)."""
+        output_path = input_path.with_suffix(".md")
         try:
             result = subprocess.run(
-                ["markitdown", str(input_path)],
+                ["markitdown", str(input_path), "-o", str(output_path)],
                 capture_output=True,
                 timeout=60,
             )
             if result.returncode == 0:
-                return result.stdout.decode("utf-8")
+                try:
+                    return output_path.read_text(encoding="utf-8")
+                finally:
+                    if output_path.exists():
+                        output_path.unlink()
             else:
                 error_msg = result.stderr.decode("utf-8") if result.stderr else "Unknown error"
                 raise RuntimeError(
