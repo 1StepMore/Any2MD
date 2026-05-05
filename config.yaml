@@ -4,12 +4,12 @@
 # ========== 输出模式 ==========
 # quality: 质量优先,使用专用转换器(pypandoc/mammoth/markdownify)
 # fast: 速度优先,统一使用markitdown快速降维
-output_mode: fast
+output_mode: quality
 
 # ========== PDF引擎策略 ==========
 # light: 使用markitdown内置基础PDF解析,零外部依赖
 # heavy: 尝试marker -> 失败降级docling -> 彻底失败则报错提示用户装环境
-pdf_engine: light
+pdf_engine: heavy
 
 # ========== 文件处理限制 ==========
 # 单文件大小限制(MB),超过则跳过并输出Error日志
@@ -27,4 +27,4 @@ output_dir: null
 
 # ========== 日志级别 ==========
 # debug / info / warning / error
-log_level: info
+log_level: debug
