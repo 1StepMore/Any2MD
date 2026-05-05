@@ -6,8 +6,23 @@ import sys
 from pathlib import Path
 from typing import List
 
+from tenacity import retry, stop_after_attempt, wait_exponential, retry_if_exception
+
 from wheels.converters.base_converter import BaseConverter
 from wheels.config import get_config
+
+
+def _retry_on_transient(exception):
+    if isinstance(exception, (subprocess.TimeoutExpired, MemoryError)):
+        return True
+    # FileNotFoundError is OSError subclass - but it's NOT transient
+    if isinstance(exception, FileNotFoundError):
+        return False
+    if isinstance(exception, OSError):
+        if hasattr(exception, 'errno') and exception.errno in (11, 12):
+            return False
+        return True
+    return False
 
 
 class PdfConverter(BaseConverter):
@@ -18,6 +33,11 @@ class PdfConverter(BaseConverter):
         """Return list of supported file extensions."""
         return [".pdf"]
 
+    @retry(
+        stop=stop_after_attempt(3),
+        wait=wait_exponential(multiplier=1, min=1, max=10),
+        retry=retry_if_exception(_retry_on_transient),
+    )
     def convert(self, input_path: Path) -> str:
         """Convert PDF file to markdown.
 

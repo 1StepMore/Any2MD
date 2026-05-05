@@ -1,11 +1,15 @@
 """Pipeline orchestration for single file conversion."""
 
+import asyncio
+from datetime import datetime
 from pathlib import Path
+from typing import List
 
 from wheels.dispatcher import Dispatcher
 from wheels.cleaner import Cleaner
 
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
+_log_lock = asyncio.Lock()
 
 
 def convert_file(input_path: Path, mode: str = "fast") -> Path:
@@ -65,3 +69,53 @@ def _get_unique_output_path(path: Path) -> Path:
         if not new_path.exists():
             return new_path
         counter += 1
+
+
+async def _async_log(file_path: Path, status: str) -> None:
+    """Thread-safe logging via shared lock."""
+    timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    async with _log_lock:
+        print(f"[{timestamp}] [{file_path}] status: {status}")
+
+
+async def _async_convert_single(
+    input_path: Path, mode: str, semaphore: asyncio.Semaphore
+) -> Path:
+    """Async wrapper for single file conversion with semaphore control.
+
+    Args:
+        input_path: Path to input file
+        mode: Conversion mode - "fast" or "quality"
+        semaphore: Semaphore to limit concurrency
+
+    Returns:
+        Path to output markdown file
+    """
+    async with semaphore:
+        await _async_log(input_path, "started")
+        try:
+            result = convert_file(input_path, mode)
+            await _async_log(input_path, f"completed -> {result}")
+            return result
+        except Exception as e:
+            await _async_log(input_path, f"failed: {e}")
+            return None  # Don't re-raise - let batch continue
+
+
+async def async_convert_batch(
+    paths: List[Path], mode: str, concurrency: int
+) -> List[Path]:
+    """Convert multiple files concurrently with semaphore-based concurrency control.
+
+    Args:
+        paths: List of input file paths
+        mode: Conversion mode - "fast" (default) or "quality"
+        concurrency: Maximum number of concurrent conversions
+
+    Returns:
+        List of output markdown file paths
+    """
+    semaphore = asyncio.Semaphore(concurrency)
+    tasks = [_async_convert_single(p, mode, semaphore) for p in paths]
+    results = await asyncio.gather(*tasks)
+    return list(results)
