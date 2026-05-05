@@ -2,8 +2,11 @@
 setlocal EnableDelayedExpansion
 chcp 65001 >nul 2>&1
 
+REM Get the batch file's own directory (D:\贯维\Any2MD\)
+set "SCRIPT_DIR=%~dp0"
+set "SCRIPT_DIR=%SCRIPT_DIR:~0,-1%"
+
 REM Get the input path from command line argument (drag and drop)
-REM Handle copied paths with special characters (Chinese, spaces, etc.)
 set "RAW_PATH=%~1"
 
 REM If no input, prompt user
@@ -23,13 +26,14 @@ for /f "delims=" %%i in ('powershell -Command "[Console]::OutputEncoding = [Syst
 REM If PowerShell failed, try to use the path as-is but ensure it's quoted
 if "%INPUT_PATH%"=="" set "INPUT_PATH=%RAW_PATH%"
 
-REM Activate virtual environment if it exists
-if exist venv\Scripts\activate.bat (
-    call venv\Scripts\activate.bat
+REM Activate virtual environment if it exists (use script dir, not CWD)
+if exist "%SCRIPT_DIR%\venv\Scripts\activate.bat" (
+    call "%SCRIPT_DIR%\venv\Scripts\activate.bat"
 )
 
-REM Run the conversion
-python cli.py --input "%INPUT_PATH%" %*
+REM Run the conversion (use script dir, not CWD)
+cd /d "%SCRIPT_DIR%"
+python "%SCRIPT_DIR%\cli.py" --input "%INPUT_PATH%" %*
 
 REM Pause to show results
 echo.
