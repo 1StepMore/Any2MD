@@ -14,13 +14,13 @@ if exist "%~dp0..\venv\Scripts\activate.bat" (
     call "%~dp0..\venv\Scripts\activate.bat"
 )
 
-REM Change to project directory (parent of bat folder)
+REM Change to project directory
 cd /d "%~dp0.."
 
-REM Run the conversion - use --input with quoted %1
+REM Run conversion (config.yaml is auto-loaded by Python)
 python cli.py --input "%~1"
 
-REM Pause to show results
+REM Show log location
 echo.
-echo Conversion complete. Press any key to exit.
+echo Conversion complete. Logs saved to logs\ directory.
 pause >nul
