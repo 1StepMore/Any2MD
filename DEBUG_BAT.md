@@ -111,16 +111,17 @@ python cli.py --input "%INPUT_PATH%" %*
 
 ---
 
-### 版本 6 (直接用 %*)
+### 版本 6 (用 %*)
 ```batch
-if "%~1"=="" (
-    echo Drag a file...
-    pause
-    exit /b 1
-)
-
-cd /d "%~dp0.."
 python cli.py %*
+```
+**问题**: `%*` 没有正确传递参数给 Typer
+
+---
+
+### 版本 7 (直接用 --input %~1)
+```batch
+python cli.py --input "%~1"
 ```
 **状态**: ✅ 工作
 
@@ -148,14 +149,29 @@ if exist "%~dp0..\venv\Scripts\activate.bat" (
 REM 切换到项目根目录
 cd /d "%~dp0.."
 
-REM 运行转换 (直接传递所有参数)
-python cli.py %*
+REM 运行转换 (使用 --input "%~1")
+python cli.py --input "%~1"
 
 REM 暂停显示结果
 echo.
 echo Conversion complete. Press any key to exit.
 pause >nul
 ```
+
+---
+
+## 版本 7 问题分析
+
+### 现象
+```
+Missing option '--input' / '-i'.
+```
+
+### 原因
+`%*` 展开后没有正确传递给 Typer。可能是因为 `%*` 包含的引号处理方式与 Typer 期望的不同。
+
+### 修复
+使用 `%~1` 直接传递第一个参数，并用 `--input "%~1"` 确保 Typer 正确接收路径。
 
 ---
 

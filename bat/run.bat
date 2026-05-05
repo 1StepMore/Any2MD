@@ -17,8 +17,8 @@ if exist "%~dp0..\venv\Scripts\activate.bat" (
 REM Change to project directory (parent of bat folder)
 cd /d "%~dp0.."
 
-REM Run the conversion - pass all arguments through to preserve quotes
-python cli.py %*
+REM Run the conversion - use --input with quoted %1
+python cli.py --input "%~1"
 
 REM Pause to show results
 echo.
