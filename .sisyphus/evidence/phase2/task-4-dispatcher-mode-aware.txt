@@ -1,0 +1,55 @@
+Task 4 evidence - Dispatcher mode-aware routing
+==============================================
+
+Evidence: Dispatcher.__init__ accepts mode parameter
+--------------------------------------------------
+Location: wheels/dispatcher.py:57
+
+Code:
+    def __init__(self, mode: str = "fast"):
+        self._mode = mode
+
+Verification:
+- mode parameter with default "fast" ✓
+- Stored as self._mode ✓
+
+Evidence: get_converter() routes based on mode
+---------------------------------------------
+Quality mode (wheels/dispatcher.py:85-98):
+- .md/.txt → PassthroughConverter ✓
+- .docx → PandocConverter (fallback MammothConverter on RuntimeError) ✓
+- .pptx/.xlsx → PandocConverter ✓
+- .html/.htm → HtmlConverter ✓
+- .pdf → raises ValueError ✓
+
+Fast mode (wheels/dispatcher.py:100-104):
+- .md/.txt → PassthroughConverter ✓
+- .docx/.xlsx/.pptx/.pdf/.html/.htm → FastLaneConverter ✓
+
+Evidence: Case-insensitive extension matching
+---------------------------------------------
+Code (line 83):
+    suffix = file_path.suffix.lower()
+Verified ✓
+
+Evidence: Quality converter instances created once in __init__
+-------------------------------------------------------------
+Code (lines 63-65):
+    self._pandoc_converter: Optional[PandocConverter] = None
+    self._mammoth_converter: Optional[MammothConverter] = None
+    self._html_converter: Optional[HtmlConverter] = None
+
+Lazy-load methods (lines 67-80):
+- _get_pandoc_converter() ✓
+- _get_mammoth_converter() ✓
+- _get_html_converter() ✓
+
+Instances cached in instance vars and reused ✓
+
+Evidence: Imports for quality converters
+---------------------------------------
+Lines 7-10:
+    from wheels.converters.converter_html import HtmlConverter
+    from wheels.converters.converter_mammoth import MammothConverter
+    from wheels.converters.converter_pandoc import PandocConverter
+Verified ✓

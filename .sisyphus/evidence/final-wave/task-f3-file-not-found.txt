@@ -1,0 +1,3 @@
+(python cli.py nonexistent_file.docx 2>&1); 'Exit code: ' + $LASTEXITCODE
+Error: File not found: nonexistent_file.docx
+Exit code: 1

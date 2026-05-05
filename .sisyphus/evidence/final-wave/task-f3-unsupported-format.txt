@@ -1,0 +1,3 @@
+(python cli.py test_qa.xyz 2>&1); 'Exit code: ' + $LASTEXITCODE
+Error: Unsupported format: .xyz
+Exit code: 1

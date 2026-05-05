@@ -1,0 +1,1 @@
+PandocConverter test - RuntimeError raised as expected when pypandoc not installed

@@ -1,0 +1,41 @@
+{
+  "active_plan": "/mnt/d/贯维/Any2MD/.sisyphus/plans/pdf-heavy-channel.md",
+  "started_at": "2026-05-05T11:38:40.598Z",
+  "session_ids": [
+    "ses_208128eaeffeBdkoJPK47kzh2N"
+  ],
+  "session_origins": {
+    "ses_208128eaeffeBdkoJPK47kzh2N": "direct"
+  },
+  "plan_name": "pdf-heavy-channel",
+  "agent": "atlas",
+  "task_sessions": {
+    "todo:1": {
+      "task_key": "todo:1",
+      "task_label": "1",
+      "task_title": "Create converter_pdf.py with dynamic import mechanism",
+      "session_id": "ses_208100976ffeA1O3BYBO6YKnQc",
+      "agent": "Sisyphus-Junior",
+      "category": "deep",
+      "updated_at": "2026-05-05T11:43:01.507Z"
+    },
+    "todo:2": {
+      "task_key": "todo:2",
+      "task_label": "2",
+      "task_title": "Update dispatcher.py to route .pdf to PdfConverter",
+      "session_id": "ses_2080bc736ffePeLiz1sbUaBXU9",
+      "agent": "Sisyphus-Junior",
+      "category": "quick",
+      "updated_at": "2026-05-05T11:46:05.353Z"
+    },
+    "final-wave:f1": {
+      "task_key": "final-wave:f1",
+      "task_label": "F1",
+      "task_title": "**Integration QA** — `unspecified-high`",
+      "session_id": "ses_20808dda6ffeASXe2dZqA9Qebm",
+      "agent": "Sisyphus-Junior",
+      "category": "unspecified-high",
+      "updated_at": "2026-05-05T11:49:59.342Z"
+    }
+  }
+}

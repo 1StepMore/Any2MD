@@ -1,0 +1,35 @@
+# Format sniffing
+filetype>=1.2.0
+
+# Quality channel converters (produce clean Markdown)
+pypandoc-binary>=1.13.0      # Pandoc wrapper with bundled binary
+mammoth>=1.6.0               # DOCX semantic to MD
+markdownify>=0.14.0          # HTML to MD (replaces BeautifulSoup hand-rolling)
+
+# Fast lane fallback (handles anything,追求"能看")
+markitdown>=0.0.1            # Microsoft出品,一键降维任意格式
+
+# PDF heavy channel (按需安装)
+# 注意: marker 与 Python 3.13 不兼容(cgi模块已移除)
+# 使用 docling-slim 作为替代方案(已测试兼容)
+docling-slim>=2.0.0           # 纯Python版面分析 (IBM出品),兼容Python 3.13
+
+# ============ 系统依赖 (非pip,需单独安装) ============
+# Windows: 使用 winget 或 chocolatey 安装
+#   tesseract:  winget install --id UB-Mannheim.TesseractOCR -e
+#   poppler:    winget install --id oschwartz10612.Poppler -e
+#
+# Linux/macOS: 使用包管理器
+#   Ubuntu/Debian: apt install tesseract-ocr poppler-utils
+#   macOS: brew install tesseract poppler
+#
+# tesseract-ocr     # OCR引擎,用于PDF heavy模式的文字识别增强
+# poppler-utils     # PDF渲染工具,用于PDF heavy模式的图像提取
+
+# Engineering infrastructure
+tenacity>=8.2.0              # I/O重试防卡死
+typer>=0.12.0               # CLI入口构建
+pyyaml>=6.0.0               # 配置加载
+
+# Optional: for development/testing
+# pytest>=8.0.0

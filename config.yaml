@@ -1,0 +1,30 @@
+# Any2MD Configuration File
+# 格式工厂分发系统 - 全自动闭环流水线配置
+
+# ========== 输出模式 ==========
+# quality: 质量优先,使用专用转换器(pypandoc/mammoth/markdownify)
+# fast: 速度优先,统一使用markitdown快速降维
+output_mode: fast
+
+# ========== PDF引擎策略 ==========
+# light: 使用markitdown内置基础PDF解析,零外部依赖
+# heavy: 尝试marker -> 失败降级docling -> 彻底失败则报错提示用户装环境
+pdf_engine: light
+
+# ========== 文件处理限制 ==========
+# 单文件大小限制(MB),超过则跳过并输出Error日志
+max_file_size: 50
+
+# 最大并发数(asyncio令牌桶控制)
+concurrency: 4
+
+# 重试次数(tenacity I/O重试)
+retry_count: 3
+
+# ========== 输出路径 ==========
+# 输出目录(null表示源文件同目录)
+output_dir: null
+
+# ========== 日志级别 ==========
+# debug / info / warning / error
+log_level: info
