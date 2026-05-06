@@ -12,10 +12,11 @@
 ## Features
 
 - **Dual-Mode Pipeline**: Quality vs Fast mode for optimal results
-- **PDF Heavy Channel**: Dynamic import for optional marker/docling engines
+- **PDF Heavy Channel**: MarkItDown (primary) + pypdfium2 (fallback)
 - **Async Batch Processing**: Concurrent file conversion with Semaphore control
 - **Smart Retry**: Tenacity-based retry for transient failures
 - **Non-Destructive Output**: Auto-incremented filenames, never overwrites
+- **Organized Output**: Folder batch outputs to `{folder}_converted/`
 - **BAT Drag-and-Drop**: Zero-config usage on Windows
 
 ## Quick Start
@@ -28,9 +29,9 @@ git clone https://github.com/1StepMore/Any2MD.git
 cd Any2MD
 
 # Create virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # Linux/macOS
-# or: venv\Scripts\activate  # Windows
+python -m venv .venv312
+.venv312\Scripts\activate  # Windows
+# or: source .venv312/bin/activate  # Linux/macOS
 
 # Install dependencies
 pip install -r requirements.txt
@@ -42,6 +43,12 @@ pip install -r requirements.txt
 ```
 1. Drag a file onto bat\run.bat
 2. Done! Markdown appears next to original
+```
+
+**Drag-and-Drop Folder (Windows)**
+```
+1. Drag a folder onto bat\run.bat
+2. Done! Markdown files appear in {folder}_converted/
 ```
 
 **Command Line**
@@ -69,8 +76,8 @@ python cli.py --help
 |--------|-------|-------------|---------|
 | `--input` | `-i` | Input file or folder | **Required** |
 | `--output` | `-o` | Output directory | Same as input |
-| `--mode` | - | `quality` or `fast` | `fast` |
-| `--pdf-engine` | - | `light` (markitdown) or `heavy` (marker/docling) | `light` |
+| `--mode` | - | `quality` or `fast` | From config |
+| `--pdf-engine` | - | `light` (markitdown) or `heavy` (MarkItDown) | From config |
 | `--concurrency` | - | Max parallel conversions | From config |
 | `--config` | - | Config file path | `config.yaml` |
 | `--verbose` | `-v` | Enable debug logging | `false` |
@@ -83,7 +90,7 @@ Edit `config.yaml`:
 # Output mode: quality (best) or fast (quick)
 output_mode: fast
 
-# PDF engine: light (markitdown) or heavy (marker -> docling)
+# PDF engine: light (markitdown) or heavy (MarkItDown -> pypdfium2)
 pdf_engine: light
 
 # Max file size (MB) - files larger are skipped
@@ -126,14 +133,14 @@ Any2MD/
 | .docx | pypandoc → mammoth fallback | markitdown |
 | .pptx / .xlsx | pypandoc | markitdown |
 | .html / .htm | markdownify | markitdown |
-| .pdf | marker/docling (heavy) or markitdown (light) | markitdown |
+| .pdf | MarkItDown (heavy) or markitdown (light) | markitdown |
 | .md / .txt | passthrough | passthrough |
 
 ## PDF Engine
 
-**Light Mode** (default): Uses markitdown with zero external dependencies.
+**Light Mode**: Uses markitdown with zero external dependencies.
 
-**Heavy Mode**: Attempts marker first, falls back to docling if unavailable.
+**Heavy Mode**: Uses Microsoft MarkItDown for table/layout detection, falls back to pypdfium2 for raw text extraction.
 
 Install heavy dependencies:
 ```bash
@@ -177,6 +184,6 @@ Built with these excellent open-source libraries:
 - [mammoth](https://github.com/mwilliamson/python-mammoth) - DOCX to Markdown
 - [markdownify](https://github.com/matthewwithanm/markdownify) - HTML to Markdown
 - [markitdown](https://github.com/microsoft/markitdown) - Microsoft format converter
-- [docling](https://github.com/DS4SD/docling) - PDF conversion
+- [pypdfium2](https://github.com/pypdfium2/pypdfium2) - PDF rendering
 - [tenacity](https://github.com/jd/tenacity) - Retry logic
 - [Typer](https://github.com/tiangolo/typer) - CLI framework
