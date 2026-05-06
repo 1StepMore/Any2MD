@@ -42,7 +42,8 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["wheels", "wheels.converters", "pipeline", "cli"]
+packages = ["wheels", "wheels.converters"]
+py-modules = ["pipeline", "cli"]
 
 [tool.setuptools.package-data]
 wheels = ["*.yaml"]
