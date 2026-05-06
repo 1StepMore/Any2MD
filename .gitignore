@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+.venv/
+venv/
+.venv312/
+
+# IDE
+.vscode/
+.idea/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Any2MD specific
+logs/
+bat/*_converted/
+bat/test_batch/
+bat/test_batch_edge_cases/
+
+# Sisyphus state (temp planning files)
+.sisyphus/
