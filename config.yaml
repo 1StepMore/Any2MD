@@ -8,7 +8,7 @@ output_mode: quality
 
 # ========== PDF引擎策略 ==========
 # light: 使用markitdown内置基础PDF解析,零外部依赖
-# heavy: 尝试marker -> 失败降级docling -> 彻底失败则报错提示用户装环境
+# heavy: 尝试MarkItDown -> 失败降级pypdfium2 -> 彻底失败则报错提示用户装环境
 pdf_engine: heavy
 
 # ========== 文件处理限制 ==========

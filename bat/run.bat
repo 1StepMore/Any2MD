@@ -10,8 +10,8 @@ if "%~1"=="" (
 )
 
 REM Activate virtual environment if it exists
-if exist "%~dp0..\venv\Scripts\activate.bat" (
-    call "%~dp0..\venv\Scripts\activate.bat"
+if exist "%~dp0..\.venv312\Scripts\activate.bat" (
+    call "%~dp0..\.venv312\Scripts\activate.bat"
 )
 
 REM Change to project directory
