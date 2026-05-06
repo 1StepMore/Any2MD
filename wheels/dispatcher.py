@@ -55,8 +55,9 @@ class FastLaneConverter(BaseConverter):
 
 class Dispatcher:
 
-    def __init__(self, mode: str = "fast"):
+    def __init__(self, mode: str = "fast", pdf_engine: str = "light"):
         self._mode = mode
+        self._pdf_engine = pdf_engine
         self._passthrough_converter = PassthroughConverter()
         self._fastlane_converter = FastLaneConverter()
 

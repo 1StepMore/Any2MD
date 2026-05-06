@@ -13,12 +13,13 @@ MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 _log_lock = asyncio.Lock()
 
 
-def convert_file(input_path: Path, mode: str = "fast") -> Path:
+def convert_file(input_path: Path, mode: str = "fast", pdf_engine: str = "light") -> Path:
     """Convert a file to markdown and save alongside the original.
 
     Args:
         input_path: Path to input file
         mode: Conversion mode - "fast" (default) or "quality"
+        pdf_engine: PDF engine - "light" (default) or "heavy"
 
     Returns:
         Path to output markdown file
@@ -37,7 +38,7 @@ def convert_file(input_path: Path, mode: str = "fast") -> Path:
         raise ValueError(f"File exceeds 50MB limit: {input_path}")
 
     # 3. Get converter
-    dispatcher = Dispatcher(mode=mode)
+    dispatcher = Dispatcher(mode=mode, pdf_engine=pdf_engine)
     converter = dispatcher.get_converter(input_path)
 
     # 4. Convert (get markdown text)
@@ -84,13 +85,14 @@ async def _async_log(file_path: Path, status: str) -> None:
 
 
 async def _async_convert_single(
-    input_path: Path, mode: str, semaphore: asyncio.Semaphore
+    input_path: Path, mode: str, pdf_engine: str, semaphore: asyncio.Semaphore
 ) -> Path:
     """Async wrapper for single file conversion with semaphore control.
 
     Args:
         input_path: Path to input file
         mode: Conversion mode - "fast" or "quality"
+        pdf_engine: PDF engine - "light" or "heavy"
         semaphore: Semaphore to limit concurrency
 
     Returns:
@@ -99,7 +101,7 @@ async def _async_convert_single(
     async with semaphore:
         await _async_log(input_path, "started")
         try:
-            result = convert_file(input_path, mode)
+            result = convert_file(input_path, mode, pdf_engine)
             await _async_log(input_path, f"completed -> {result}")
             return result
         except Exception as e:
@@ -108,7 +110,7 @@ async def _async_convert_single(
 
 
 async def async_convert_batch(
-    paths: List[Path], mode: str, concurrency: int
+    paths: List[Path], mode: str, concurrency: int, pdf_engine: str = "light"
 ) -> List[Path]:
     """Convert multiple files concurrently with semaphore-based concurrency control.
 
@@ -116,11 +118,12 @@ async def async_convert_batch(
         paths: List of input file paths
         mode: Conversion mode - "fast" (default) or "quality"
         concurrency: Maximum number of concurrent conversions
+        pdf_engine: PDF engine - "light" or "heavy"
 
     Returns:
         List of output markdown file paths
     """
     semaphore = asyncio.Semaphore(concurrency)
-    tasks = [_async_convert_single(p, mode, semaphore) for p in paths]
+    tasks = [_async_convert_single(p, mode, pdf_engine, semaphore) for p in paths]
     results = await asyncio.gather(*tasks)
     return list(results)

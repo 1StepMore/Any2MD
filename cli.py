@@ -17,8 +17,8 @@ app = typer.Typer()
 def main(
     input_file: Path = typer.Option(..., "--input", "-i", help="Input file or folder"),
     output_dir: Optional[Path] = typer.Option(None, "--output", "-o", help="Output directory (default: same as input)"),
-    mode: str = typer.Option("fast", "--mode", help="Conversion mode: 'fast' or 'quality'"),
-    pdf_engine: str = typer.Option("light", "--pdf-engine", help="PDF engine: 'light' or 'heavy'"),
+    mode: Optional[str] = typer.Option(None, "--mode", help="Conversion mode: 'fast' or 'quality' (default: from config)"),
+    pdf_engine: Optional[str] = typer.Option(None, "--pdf-engine", help="PDF engine: 'light' or 'heavy' (default: from config)"),
     concurrency: Optional[int] = typer.Option(None, "--concurrency", help="Max concurrent conversions"),
     config: Optional[Path] = typer.Option(None, "--config", help="Config file path"),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Enable verbose logging"),
@@ -28,14 +28,19 @@ def main(
     Args:
         input_file: Path to the file or folder to convert.
         output_dir: Output directory (default: same as input).
-        mode: Conversion mode - 'fast' (default) or 'quality'.
-        pdf_engine: PDF engine - 'light' (default) or 'heavy'.
+        mode: Conversion mode - 'fast' or 'quality' (default from config.yaml).
+        pdf_engine: PDF engine - 'light' or 'heavy' (default from config.yaml).
         concurrency: Maximum concurrent conversions (default from config.yaml).
         config: Path to config file.
         verbose: Enable verbose logging.
     """
     # Setup logger with verbose flag
     setup_logger(verbose)
+
+    # Load config for defaults
+    cfg = get_config()
+    mode = mode if mode is not None else cfg.output_mode
+    pdf_engine = pdf_engine if pdf_engine is not None else cfg.pdf_engine
 
     logger.info(f"Starting conversion: mode={mode}, pdf_engine={pdf_engine}")
 
@@ -59,9 +64,9 @@ def main(
 
         concurrency_limit = concurrency if concurrency is not None else get_config().concurrency
 
-        logger.info(f"Batch mode: {len(files)} files, concurrency={concurrency_limit}, mode={mode}")
+        logger.info(f"Batch mode: {len(files)} files, concurrency={concurrency_limit}, mode={mode}, pdf_engine={pdf_engine}")
         typer.echo(f"Found {len(files)} files, converting with concurrency={concurrency_limit}...")
-        results = asyncio.run(async_convert_batch(files, mode, concurrency_limit))
+        results = asyncio.run(async_convert_batch(files, mode, concurrency_limit, pdf_engine))
         success_count = sum(1 for r in results if r is not None)
         fail_count = sum(1 for r in results if r is None)
         logger.info(f"Batch completed: {success_count} succeeded, {fail_count} failed")
@@ -71,7 +76,7 @@ def main(
     # Single file handling
     logger.info(f"Converting: {input_file} (mode={mode})")
     try:
-        output_path = convert_file(input_file, mode=mode)
+        output_path = convert_file(input_file, mode=mode, pdf_engine=pdf_engine)
         logger.info(f"Success: {input_file} -> {output_path}")
         typer.echo(f"Converted: {output_path}")
     except FileNotFoundError:
