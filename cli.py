@@ -64,9 +64,12 @@ def main(
 
         concurrency_limit = concurrency if concurrency is not None else get_config().concurrency
 
-        logger.info(f"Batch mode: {len(files)} files, concurrency={concurrency_limit}, mode={mode}, pdf_engine={pdf_engine}")
-        typer.echo(f"Found {len(files)} files, converting with concurrency={concurrency_limit}...")
-        results = asyncio.run(async_convert_batch(files, mode, concurrency_limit, pdf_engine))
+        output_dir = input_file.parent / f"{input_file.name}_converted"
+        output_dir.mkdir(parents=True, exist_ok=True)
+
+        logger.info(f"Batch mode: {len(files)} files, concurrency={concurrency_limit}, output={output_dir}")
+        typer.echo(f"Found {len(files)} files, converting to {output_dir}...")
+        results = asyncio.run(async_convert_batch(files, mode, concurrency_limit, pdf_engine, output_dir))
         success_count = sum(1 for r in results if r is not None)
         fail_count = sum(1 for r in results if r is None)
         logger.info(f"Batch completed: {success_count} succeeded, {fail_count} failed")

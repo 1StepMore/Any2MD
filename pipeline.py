@@ -3,7 +3,7 @@
 import asyncio
 from datetime import datetime
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 from wheels.dispatcher import Dispatcher
 from wheels.cleaner import Cleaner
@@ -13,13 +13,14 @@ MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 _log_lock = asyncio.Lock()
 
 
-def convert_file(input_path: Path, mode: str = "fast", pdf_engine: str = "light") -> Path:
-    """Convert a file to markdown and save alongside the original.
+def convert_file(input_path: Path, mode: str = "fast", pdf_engine: str = "light", output_dir: Optional[Path] = None) -> Path:
+    """Convert a file to markdown.
 
     Args:
         input_path: Path to input file
         mode: Conversion mode - "fast" (default) or "quality"
         pdf_engine: PDF engine - "light" (default) or "heavy"
+        output_dir: Output directory (default: same as input)
 
     Returns:
         Path to output markdown file
@@ -28,46 +29,46 @@ def convert_file(input_path: Path, mode: str = "fast", pdf_engine: str = "light"
         FileNotFoundError: If input file does not exist
         ValueError: If file exceeds 50MB or format unsupported
     """
-    # 1. Check file exists
     if not input_path.exists():
         raise FileNotFoundError(f"File not found: {input_path}")
 
-    # 2. Check file size
     size = input_path.stat().st_size
     if size > MAX_FILE_SIZE:
         raise ValueError(f"File exceeds 50MB limit: {input_path}")
 
-    # 3. Get converter
     dispatcher = Dispatcher(mode=mode, pdf_engine=pdf_engine)
     converter = dispatcher.get_converter(input_path)
 
-    # 4. Convert (get markdown text)
     markdown_text = converter.convert(input_path)
-
-    # 5. Clean the text
     cleaned_text = Cleaner.clean(markdown_text)
 
-    # 6. Determine output path with conflict resolution
-    output_path = _get_unique_output_path(input_path.with_suffix('.md'))
+    output_path = _get_unique_output_path(input_path, output_dir)
 
-    # 7. Write output
     output_path.write_text(cleaned_text, encoding='utf-8')
 
     return output_path
 
 
-def _get_unique_output_path(path: Path) -> Path:
-    """Get unique output path by incrementing suffix if file exists."""
-    if not path.exists():
-        return path
+def _get_unique_output_path(input_path: Path, output_dir: Optional[Path] = None) -> Path:
+    if output_dir is not None:
+        output_dir.mkdir(parents=True, exist_ok=True)
+        stem = input_path.stem
+        output_path = output_dir / f"{stem}.md"
+        counter = 1
+        while output_path.exists():
+            output_path = output_dir / f"{stem}_{counter}.md"
+            counter += 1
+        return output_path
 
-    stem = path.stem
-    parent = path.parent
-    suffix = path.suffix
+    if not input_path.exists():
+        return input_path.with_suffix('.md')
+
+    stem = input_path.stem
+    parent = input_path.parent
 
     counter = 1
     while True:
-        new_path = parent / f"{stem}_{counter}{suffix}"
+        new_path = parent / f"{stem}_{counter}.md"
         if not new_path.exists():
             return new_path
         counter += 1
@@ -85,45 +86,23 @@ async def _async_log(file_path: Path, status: str) -> None:
 
 
 async def _async_convert_single(
-    input_path: Path, mode: str, pdf_engine: str, semaphore: asyncio.Semaphore
+    input_path: Path, mode: str, pdf_engine: str, output_dir: Optional[Path], semaphore: asyncio.Semaphore
 ) -> Path:
-    """Async wrapper for single file conversion with semaphore control.
-
-    Args:
-        input_path: Path to input file
-        mode: Conversion mode - "fast" or "quality"
-        pdf_engine: PDF engine - "light" or "heavy"
-        semaphore: Semaphore to limit concurrency
-
-    Returns:
-        Path to output markdown file
-    """
     async with semaphore:
         await _async_log(input_path, "started")
         try:
-            result = convert_file(input_path, mode, pdf_engine)
+            result = convert_file(input_path, mode, pdf_engine, output_dir)
             await _async_log(input_path, f"completed -> {result}")
             return result
         except Exception as e:
             await _async_log(input_path, f"failed: {e}")
-            return None  # Don't re-raise - let batch continue
+            return None
 
 
 async def async_convert_batch(
-    paths: List[Path], mode: str, concurrency: int, pdf_engine: str = "light"
+    paths: List[Path], mode: str, concurrency: int, pdf_engine: str = "light", output_dir: Optional[Path] = None
 ) -> List[Path]:
-    """Convert multiple files concurrently with semaphore-based concurrency control.
-
-    Args:
-        paths: List of input file paths
-        mode: Conversion mode - "fast" (default) or "quality"
-        concurrency: Maximum number of concurrent conversions
-        pdf_engine: PDF engine - "light" or "heavy"
-
-    Returns:
-        List of output markdown file paths
-    """
     semaphore = asyncio.Semaphore(concurrency)
-    tasks = [_async_convert_single(p, mode, pdf_engine, semaphore) for p in paths]
+    tasks = [_async_convert_single(p, mode, pdf_engine, output_dir, semaphore) for p in paths]
     results = await asyncio.gather(*tasks)
     return list(results)
