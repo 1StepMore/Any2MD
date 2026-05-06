@@ -116,6 +116,7 @@ Any2MD/
 │   │   ├── converter_html.py      # Quality: HTML
 │   │   ├── converter_pdf.py       # Dynamic: PDF (light/heavy)
 │   │   └── converter_passthrough.py # .md/.txt passthrough
+│   │   └── converter_markitdown.py # Fast: csv/json/xml/yaml/epub/zip
 │   ├── dispatcher.py        # Format routing
 │   ├── fast_lane.py        # markitdown wrapper
 │   ├── cleaner.py           # Text post-processing
@@ -135,6 +136,10 @@ Any2MD/
 | .html / .htm | markdownify | markitdown |
 | .pdf | MarkItDown (heavy) or markitdown (light) | markitdown |
 | .md / .txt | passthrough | passthrough |
+| .csv / .json / .xml | - | markitdown |
+| .yaml / .yml | - | markitdown |
+| .epub | - | markitdown |
+| .zip | - | markitdown |
 
 ## PDF Engine
 
