@@ -9,6 +9,7 @@ from wheels.converters.converter_mammoth import MammothConverter
 from wheels.converters.converter_pandoc import PandocConverter
 from wheels.converters.converter_passthrough import PassthroughConverter
 from wheels.converters.converter_pdf import PdfConverter
+from wheels.converters.converter_markitdown import MarkitdownConverter
 from wheels.fast_lane import FastLane
 
 
@@ -65,6 +66,7 @@ class Dispatcher:
         self._mammoth_converter: Optional[MammothConverter] = None
         self._html_converter: Optional[HtmlConverter] = None
         self._pdf_converter: Optional[PdfConverter] = None
+        self._markitdown_converter: Optional[MarkitdownConverter] = None
 
     def _get_pandoc_converter(self) -> PandocConverter:
         if self._pandoc_converter is None:
@@ -85,6 +87,11 @@ class Dispatcher:
         if self._pdf_converter is None:
             self._pdf_converter = PdfConverter()
         return self._pdf_converter
+
+    def _get_markitdown_converter(self) -> MarkitdownConverter:
+        if self._markitdown_converter is None:
+            self._markitdown_converter = MarkitdownConverter()
+        return self._markitdown_converter
 
     def get_converter(self, file_path: Path) -> BaseConverter:
         suffix = file_path.suffix.lower()
@@ -112,4 +119,4 @@ class Dispatcher:
             if suffix == ".pdf":
                 return self._get_pdf_converter()
 
-        raise ValueError(f"Unsupported format: {suffix}")
+        return self._get_markitdown_converter()
