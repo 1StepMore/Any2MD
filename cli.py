@@ -9,6 +9,7 @@ import typer
 from pipeline import convert_file, async_convert_batch
 from wheels.config import get_config
 from wheels.logger import logger, setup_logger
+from wheels.exceptions import FileTooLargeError, UnsupportedFormatError, ConversionError
 
 app = typer.Typer()
 
@@ -86,16 +87,15 @@ def main(
         logger.error(f"File not found: {input_file}")
         typer.echo(f"Error: File not found: {input_file}", err=True)
         raise typer.Exit(code=1)
-    except ValueError as e:
-        msg = str(e)
-        if "50MB" in msg:
-            logger.warning(f"File too large: {input_file}")
-            typer.echo("Error: File exceeds 50MB limit", err=True)
-        else:
-            logger.error(f"Unsupported format: {input_file.suffix}")
-            typer.echo(f"Error: Unsupported format: {input_file.suffix}", err=True)
+    except FileTooLargeError:
+        logger.warning(f"File too large: {input_file}")
+        typer.echo("Error: File exceeds 50MB limit", err=True)
         raise typer.Exit(code=1)
-    except RuntimeError as e:
+    except UnsupportedFormatError:
+        logger.error(f"Unsupported format: {input_file.suffix}")
+        typer.echo(f"Error: Unsupported format: {input_file.suffix}", err=True)
+        raise typer.Exit(code=1)
+    except ConversionError as e:
         logger.error(f"Conversion failed: {input_file}: {e}")
         typer.echo(f"Error: Conversion failed: {e}", err=True)
         raise typer.Exit(code=1)

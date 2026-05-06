@@ -18,12 +18,15 @@ Any2MD 配置加载模块
 
 from __future__ import annotations
 
+import importlib.resources
 import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Literal, Optional
 
 import yaml
+
+from wheels.exceptions import ConfigError
 
 
 # ========== 类型别名 ==========
@@ -144,6 +147,9 @@ def load_config(config_path: str | Path | None = None) -> Config:
 
     Returns:
         Config实例
+
+    Raises:
+        ConfigError: 配置文件未找到或无效
     """
     global _config
 
@@ -151,16 +157,25 @@ def load_config(config_path: str | Path | None = None) -> Config:
         return _config
 
     if config_path is None:
-        # 查找 config.yaml
+        # 首先检查当前目录 (开发模式)
         config_path = Path("config.yaml")
         if not config_path.exists():
-            # 尝试上级目录
-            config_path = Path(__file__).parent.parent / "config.yaml"
+            # 尝试包内配置 (安装后 __file__ 在 site-packages)
+            # 使用 importlib.resources 跨平台兼容
+            try:
+                pkg_config = importlib.resources.files("wheels").parent.parent / "config.yaml"
+                if pkg_config.exists():
+                    config_path = pkg_config
+                else:
+                    config_path = None
+            except Exception:
+                config_path = None
 
-    if not Path(config_path).exists():
-        # 使用默认配置
-        _config = Config()
-        return _config
+    if config_path is None or not Path(config_path).exists():
+        raise ConfigError(
+            "config.yaml not found. Please ensure config.yaml exists in the project root "
+            "or installation directory."
+        )
 
     _config = Config.from_yaml(config_path)
     return _config

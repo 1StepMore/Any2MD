@@ -8,6 +8,7 @@ from typing import List, Optional
 from wheels.dispatcher import Dispatcher
 from wheels.cleaner import Cleaner
 from wheels.logger import logger
+from wheels.exceptions import FileTooLargeError, UnsupportedFormatError, ConversionError
 
 MAX_FILE_SIZE = 50 * 1024 * 1024  # 50MB
 _log_lock = asyncio.Lock()
@@ -27,20 +28,26 @@ def convert_file(input_path: Path, mode: str = "fast", pdf_engine: str = "light"
 
     Raises:
         FileNotFoundError: If input file does not exist
-        ValueError: If file exceeds 50MB or format unsupported
+        UnsupportedFormatError: If format unsupported
+        FileTooLargeError: If file exceeds 50MB
+        ConversionError: If conversion fails
     """
     if not input_path.exists():
         raise FileNotFoundError(f"File not found: {input_path}")
 
     size = input_path.stat().st_size
     if size > MAX_FILE_SIZE:
-        raise ValueError(f"File exceeds 50MB limit: {input_path}")
+        raise FileTooLargeError(f"File exceeds 50MB limit: {input_path}")
 
-    dispatcher = Dispatcher(mode=mode, pdf_engine=pdf_engine)
-    converter = dispatcher.get_converter(input_path)
-
-    markdown_text = converter.convert(input_path)
-    cleaned_text = Cleaner.clean(markdown_text)
+    try:
+        dispatcher = Dispatcher(mode=mode, pdf_engine=pdf_engine)
+        converter = dispatcher.get_converter(input_path)
+        markdown_text = converter.convert(input_path)
+        cleaned_text = Cleaner.clean(markdown_text)
+    except ValueError as e:
+        raise UnsupportedFormatError(str(e))
+    except Exception as e:
+        raise ConversionError(f"Conversion failed: {e}")
 
     output_path = _get_unique_output_path(input_path, output_dir)
 
