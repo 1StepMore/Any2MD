@@ -91,46 +91,14 @@ class PdfConverter(BaseConverter):
             raise RuntimeError("markitdown timed out after 60 seconds") from None
 
     def _convert_heavy(self, input_path: Path) -> str:
-        """Convert using marker or docling (dynamic import inside convert())."""
-        # Try marker first, then docling fallback
-        error_messages = []
+        import pypdfium2 as pdfium
 
-        # Try marker
-        try:
-            marker = importlib.import_module("marker")
-            # Use marker.convert directly
-            from marker.convert import convert as marker_convert
-
-            result = marker_convert(input_path)
-            return result
-        except ImportError as e:
-            error_messages.append(f"marker: {e}")
-
-        # Try docling
-        try:
-            docling = importlib.import_module("docling")
-            # Use docling backend
-            from docling.backend.pypdfium2_backend import PyPdfiumDocumentBackend
-            from docling.datamodel.base_models import InputDocument
-            from docling.datamodel.pipeline_options import PdfPipelineOptions
-            from docling.pipeline.standard_pipeline import StandardPipeline
-
-            # Minimal docling conversion
-            pipeline_options = PdfPipelineOptions()
-            doc = PyPdfiumDocumentBackend(InputDocument.from_path(input_path, pipeline_options=pipeline_options))
-            converter = StandardPipeline(pipeline_options)
-            result = converter.process(doc)
-            return result.markdown
-        except ImportError as e:
-            error_messages.append(f"docling: {e}")
-
-        # All engines failed - provide clear install instructions
-        install_instructions = (
-            "No PDF heavy engine available. Install one of:\n"
-            "  pip install marker  # Primary choice (may not work with Python 3.13+)\n"
-            "  pip install docling  # Fallback option\n"
-            "Also ensure system dependencies: tesseract, poppler-utils (pdftoppm, pdfinfo)"
-        )
-        raise RuntimeError(
-            f"PDF heavy conversion failed. Tried: {', '.join(error_messages)}\n\n{install_instructions}"
-        ) from None
+        doc = pdfium.PdfDocument(str(input_path))
+        parts = []
+        for page_num in range(len(doc)):
+            page = doc[page_num]
+            textpage = page.get_textpage()
+            text = textpage.get_text_bounded()
+            if text.strip():
+                parts.append(f"## Page {page_num + 1}\n\n{text.strip()}")
+        return "\n\n".join(parts)
