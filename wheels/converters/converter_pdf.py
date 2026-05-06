@@ -91,6 +91,20 @@ class PdfConverter(BaseConverter):
             raise RuntimeError("markitdown timed out after 60 seconds") from None
 
     def _convert_heavy(self, input_path: Path) -> str:
+        # Try MarkItDown first (Microsoft PDF to Markdown converter)
+        try:
+            from markitdown import MarkItDown
+            from markitdown._exceptions import MarkItDownException
+
+            md = MarkItDown()
+            result = md.convert(str(input_path))
+            return result.markdown
+        except ImportError:
+            pass  # markitdown not installed
+        except (MarkItDownException, Exception) as e:
+            pass  # MarkItDown failed, try fallback
+
+        # Fallback: pypdfium2 raw text extraction
         import pypdfium2 as pdfium
 
         doc = pdfium.PdfDocument(str(input_path))
