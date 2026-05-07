@@ -4,13 +4,11 @@ on:
   push:
     branches:
       - main
-      - master
-      - default
+    tags:
+      - 'v*'
   pull_request:
     branches:
       - main
-      - master
-      - default
 
 jobs:
   test:
