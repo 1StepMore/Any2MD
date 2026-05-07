@@ -1,3 +1,0 @@
-Verification: python3 -c 'from wheels.converters.converter_mammoth import MammothConverter; print(MammothConverter().supported_extensions)'
-Output: ['.docx']
-Status: PASS

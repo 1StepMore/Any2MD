@@ -1,6 +1,0 @@
-=== PandocConverter Evidence ===
-File: wheels/converters/converter_pandoc.py
-RuntimeError raised as expected (pypandoc not installed):
-
-Syntax check:
-PASS - Syntax OK
