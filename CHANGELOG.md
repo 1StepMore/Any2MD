@@ -9,15 +9,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - **Test Suite**: 83 tests covering API, exceptions, config, dispatcher, and integration
-- **GitHub Actions CI**: Automated testing and linting on push/PR
+- **GitHub Actions CI**: Automated testing (Python 3.10/3.11/3.12) with lint and type-check
+- **Trusted Publishing**: Auto-publish to PyPI via GitHub Actions OIDC (no tokens)
 - **Python API Documentation**: Full API docs in README with code examples
 
 ### Changed
-- **README**: Added Python API section, pip install instructions, config access tip
+- **README**: Added Python API section, pip install instructions, config access tip, updated architecture diagram
 - **requirements.txt**: Added pytest for testing
 
 ### Fixed
 - **Wrapper package**: `any2md/` wrapper properly exposes `convert_to_markdown`
+- **CI triggers**: Fixed to trigger on `main` branch and `v*` tags
+- **PyPI project name**: Matched to `Any2MD-1StepMore` (not `any2md` which was taken)
 
 ## [0.2.0] - 2025-05-07
 

@@ -80,6 +80,7 @@ Expected workflow duration: ~3-5 minutes
 ## Important Notes
 
 - Version in `pyproject.toml` MUST match the git tag for consistency
+- PyPI project name is `Any2MD-1StepMore` (not `any2md` which was taken)
 - Trusted publishing uses OIDC - no tokens needed
 - The workflow uses `fail-fast: true` on the test matrix
 - Lint and type-check use `|| true` to not block (they're non-blocking for now)

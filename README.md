@@ -29,8 +29,8 @@ git clone https://github.com/1StepMore/Any2MD.git
 cd Any2MD
 pip install -e .
 
-# Or install from PyPI (when available)
-pip install any2md
+# From PyPI
+pip install Any2MD-1StepMore
 ```
 
 ### Usage
@@ -149,11 +149,24 @@ Any2MD/
 │   ├── dispatcher.py        # Format routing
 │   ├── fast_lane.py        # markitdown wrapper
 │   ├── cleaner.py           # Text post-processing
-│   └── logger.py           # Logging configuration
+│   ├── logger.py            # Logging configuration
+│   └── exceptions.py       # Exception hierarchy
+├── any2md/                  # Public package wrapper
+│   └── __init__.py          # Re-exports convert_to_markdown + exceptions
+├── tests/                   # Test suite (83 tests)
+│   ├── test_api.py
+│   ├── test_exceptions.py
+│   ├── test_config.py
+│   ├── test_dispatcher.py
+│   └── test_integration.py
+├── .github/workflows/ci.yml  # GitHub Actions CI/CD
 ├── cli.py                  # Typer CLI entry
-├── pipeline.py              # Async batch orchestration
+├── pipeline.py             # Async batch orchestration
+├── pyproject.toml          # Package metadata (pip install -e .)
 ├── config.yaml             # Configuration
-└── requirements.txt        # Dependencies
+├── requirements.txt         # Dependencies
+├── CHANGELOG.md             # Version history
+└── CONTRIBUTING.md          # CI/CD release process
 ```
 
 ## Supported Formats
