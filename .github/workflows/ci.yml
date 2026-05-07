@@ -5,10 +5,12 @@ on:
     branches:
       - main
       - master
+      - default
   pull_request:
     branches:
       - main
       - master
+      - default
 
 jobs:
   test:
