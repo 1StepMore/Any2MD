@@ -24,17 +24,13 @@
 ### Installation
 
 ```bash
-# Clone the repository
+# From source (development)
 git clone https://github.com/1StepMore/Any2MD.git
 cd Any2MD
+pip install -e .
 
-# Create virtual environment (recommended)
-python -m venv .venv312
-.venv312\Scripts\activate  # Windows
-# or: source .venv312/bin/activate  # Linux/macOS
-
-# Install dependencies
-pip install -r requirements.txt
+# Or install from PyPI (when available)
+pip install any2md
 ```
 
 ### Usage
@@ -70,6 +66,37 @@ python cli.py -i document.pdf --verbose
 python cli.py --help
 ```
 
+## Python API
+
+```python
+from any2md import convert_to_markdown
+
+# Basic usage
+md = convert_to_markdown("document.pdf")
+print(md)
+
+# With options
+md = convert_to_markdown("document.docx", mode="quality")
+md = convert_to_markdown("document.pdf", mode="fast", pdf_engine="heavy")
+
+# Error handling
+from any2md import (
+    convert_to_markdown,
+    FileTooLargeError,
+    UnsupportedFormatError,
+    ConversionError,
+)
+
+try:
+    md = convert_to_markdown("document.pdf")
+except FileTooLargeError:
+    print("File too large (max 50MB)")
+except UnsupportedFormatError:
+    print("Format not supported")
+except ConversionError as e:
+    print(f"Conversion failed: {e}")
+```
+
 ## CLI Options
 
 | Option | Short | Description | Default |
@@ -102,6 +129,8 @@ concurrency: 4
 # Retry attempts for transient failures
 retry_count: 3
 ```
+
+> Tip: You can also access config programmatically via `from wheels.config import get_config`
 
 ## Architecture
 

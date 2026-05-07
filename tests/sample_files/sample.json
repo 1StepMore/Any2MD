@@ -1,0 +1,9 @@
+{
+    "product": "Any2MD",
+    "version": "1.0.0",
+    "features": [
+        "fast mode",
+        "quality mode",
+        "pdf conversion"
+    ]
+}

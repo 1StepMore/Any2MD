@@ -1,0 +1,5 @@
+This is a plain text test file.
+
+It contains multiple lines of text for testing the passthrough converter.
+
+No special formatting is applied.
