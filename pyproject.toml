@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "any2md"
-version = "0.2.0"
+version = "0.2.1"
 description = "Universal document to Markdown converter with quality/fast dual-mode pipeline"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -42,8 +42,8 @@ dev = [
 ]
 
 [tool.setuptools]
-packages = ["wheels", "wheels.converters"]
-py-modules = ["any2md", "pipeline", "cli"]
+packages = ["any2md", "wheels", "wheels.converters"]
+py-modules = ["pipeline", "cli"]
 
 [tool.setuptools.package-data]
 wheels = ["*.yaml"]
