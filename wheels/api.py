@@ -35,7 +35,7 @@ def convert_to_markdown(
         >>> print(md[:100])
     """
     # 延迟导入避免循环依赖
-    from pipeline import convert_file
+    from .pipeline import convert_file
 
     input_path = Path(file_path) if isinstance(file_path, str) else file_path
 
