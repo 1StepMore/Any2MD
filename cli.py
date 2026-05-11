@@ -52,7 +52,8 @@ def main(
     # Directory handling
     if input_file.is_dir():
         files = []
-        supported_exts = ['.pdf', '.docx', '.xlsx', '.pptx', '.html', '.htm', '.md', '.txt']
+        supported_exts = ['.pdf', '.docx', '.xlsx', '.pptx', '.html', '.htm', '.md', '.txt',
+                         '.csv', '.json', '.xml', '.yaml', '.yml', '.epub', '.zip']
         for ext in supported_exts:
             for f in input_file.rglob(f'*{ext}'):
                 if not f.name.startswith('.'):
